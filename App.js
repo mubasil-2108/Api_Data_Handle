@@ -3,6 +3,7 @@ import React, { useEffect, useState, } from 'react'
 
 const App = () => {
   const [data, setData] = useState([]);
+  const [searchData, setSearchData] = useState([]);
   const [name, setName] = useState('');
   const [age, setAge] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
@@ -43,12 +44,12 @@ const App = () => {
     }
   }
 
-  const putApiData = async () =>{
-    console.log('New', name+ ' '+age+' '+selectedItem.id);
+  const putApiData = async () => {
+    console.log('New', name + ' ' + age + ' ' + selectedItem.id);
     const url = "http://10.0.2.2:3000/users"
-    const id =  selectedItem.id;
+    const id = selectedItem.id;
     let response = await fetch(`${url}/${id}`, {
-      method:'PUT',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, age: age })
     });
@@ -57,12 +58,30 @@ const App = () => {
       getApiData();
       setModalVisible(false);
       ToastAndroid.show('Data Successfully Updated', ToastAndroid.LONG);
-      }
+    }
+  }
+
+  const searchApiData = async (text) => {
+    const url = `http://10.0.2.2:3000/users?q=${text}`
+    let response = await fetch(url);
+    response = await response.json();
+    console.log('Search Text : ',text)
+    if (response) {
+      const filteredData = response.filter(item => 
+        item.name.toLowerCase().includes(text.toLowerCase())
+      );
+      console.log('Search Data : ', filteredData);
+      
+      setSearchData(filteredData);
+    }else{
+      console.log('Bye');
+
+    }
   }
 
   const openModal = (item) => {
     setSelectedItem(item);
-    console.log(item.name+' '+item.age)
+    console.log(item.name + ' ' + item.age)
     setName(item.name);
     setAge(item.age.toString());
     setModalVisible(true);
@@ -70,7 +89,23 @@ const App = () => {
 
   console.log('Rendered Data:', data);
   return (
-    <View style={{ flex: 1, backgroundColor: 'pink' }}>
+    <View style={{ flex: 1 }}>
+
+      <View style={{ flex: 1 }}>
+        <Text>Search Data</Text>
+        <TextInput onChangeText={(text) => searchApiData(text)} style={{ borderWidth: 1, margin: 5, color: 'black' }} placeholder='Search' />
+        {
+          searchData.length ? (
+            searchData.map((item) => (
+              <View key={item.id}>
+                <Text>{item.name}</Text>
+              </View>
+            ))
+            ) : 
+            null
+        }
+      </View>
+
       <View style={{ flex: 1 }}>
         <Text>POST API Data</Text>
         <TextInput value={name} onChangeText={(text) => setName(text)} style={{ borderWidth: 1, margin: 5, color: 'black' }} placeholder='Enter name' />
@@ -86,18 +121,18 @@ const App = () => {
         {
           data.length ? (
             data.map((item) => (
-              <View key={item.id} style={{ backgroundColor: 'grey', flexDirection: 'row', lignItems: 'center' }}>
-                <View style={{ flex: 1, backgroundColor: 'yellow', justifyContent:'space-between', flexDirection: 'row' }}>
+              <View key={item.id} style={{ flexDirection: 'row', lignItems: 'center' }}>
+                <View style={{ flex: 1, justifyContent: 'space-between', flexDirection: 'row' }}>
 
                   <Text style={{ color: 'black' }}>Name :  {item.name}</Text>
                   <Text style={{ color: 'black' }}>Age :  {item.age}</Text>
                 </View>
-                <View style={{ flex: 1, flexDirection: 'row', justifyContent:'space-between', marginLeft: 20 }}>
-                  <TouchableOpacity onPress={() => deleteApiData(item.id)} style={{ padding: 2, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 20, textAlign: 'center' }}>Delete</Text>
+                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', marginLeft: 20 }}>
+                  <TouchableOpacity onPress={() => deleteApiData(item.id)} style={{ padding: 2, paddingHorizontal: 3, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 20, paddingHorizontal: 3, textAlign: 'center' }}>Delete</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => openModal(item)} style={{ padding: 2, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 20, textAlign: 'center' }}>Update</Text>
+                  <TouchableOpacity onPress={() => openModal(item)} style={{ padding: 2, paddingHorizontal: 3, backgroundColor: 'red', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 20, paddingHorizontal: 3, textAlign: 'center' }}>Update</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -135,7 +170,7 @@ const App = () => {
               placeholder='Enter Age'
               keyboardType="numeric"
             />
-            <TouchableOpacity onPress={putApiData}  style={{ backgroundColor: 'green', padding: 10, alignItems: 'center' }}>
+            <TouchableOpacity onPress={putApiData} style={{ backgroundColor: 'green', padding: 10, alignItems: 'center' }}>
               <Text style={{ color: 'white' }}>Update</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setModalVisible(false)} style={{ backgroundColor: 'gray', padding: 10, marginTop: 10, alignItems: 'center' }}>
